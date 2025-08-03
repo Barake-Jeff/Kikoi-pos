@@ -1,0 +1,28 @@
+/* src/features/pos_terminal/components/Receipt.css */
+
+/* These styles will ONLY be applied when printing */
+@media print {
+  /* Hide the main application when printing, only show the receipt */
+  body > #root > *:not(.receipt-print-container) {
+    display: none !important;
+  }
+
+  /* Ensure the receipt takes up the full space */
+  .receipt-print-container,
+  .receipt-print-container * {
+    visibility: visible !important;
+    font-size: 9pt !important; /* Use 'pt' for print, it's more reliable than 'px' */
+    font-family: "Lucida Console", "Courier New", monospace !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Make specific elements even smaller if needed */
+  .receipt-print-container .receipt-secondary-info {
+    font-size: 8pt !important;
+  }
+
+  /* Make the store name proportionally larger */
+  .receipt-print-container .receipt-store-name {
+    font-size: 12pt !important;
+  }
+}
