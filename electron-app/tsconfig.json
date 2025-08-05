@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs", // Electron main process uses CommonJS
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "lib": ["es2020", "dom"], // Include dom for BrowserWindow/web APIs
+    "baseUrl": "." // Important for resolving modules relative to project root
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}

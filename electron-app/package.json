@@ -1,0 +1,62 @@
+{
+  "name": "electron-app",
+  "version": "1.0.0",
+  "description": "KIKOI POS",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "concurrently \"npm run start-frontend-dev\" \"wait-on http://localhost:5173 && npm run start-electron-dev\"",
+    "start-electron-dev": "electron .",
+    "start-frontend-dev": "cd ../pos-system-frontend && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend && npm run build:electron",
+    "build:electron": "tsc && electron-builder",
+    "build:frontend": "cd ../pos-system-frontend && npm run build",
+    "build:backend": "cd ../pos-system-backend && npm run build",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "concurrently": "^8.2.2",
+    "electron": "^29.1.0",
+    "electron-builder": "^24.13.3",
+    "typescript": "^5.3.3",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+
+  },
+  "build": {
+    "appId": "com.yourcompany.kikoi-pos",
+    "productName": "Kikoi POS App",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      {
+        "from": "../pos-system-frontend/dist",
+        "to": "frontend",
+        "filter": [
+          "**/*"
+        ]
+      },
+      "src/*.html"
+    ],
+    "extraResources": [
+      {
+        "from": "../pos-system-backend",
+        "to": "backend",
+        "filter": [
+          "dist/**",
+          ".env",
+          "package.json"
+        ]
+      }
+    ],
+    "afterPack": "./afterPack.js",
+    "asar": true
+  }
+}
