@@ -1,4 +1,3 @@
-// src/features/pos_terminal/components/CartDisplay.tsx
 import { Box, Typography, Paper, IconButton } from '@mui/material';
 import { AddCircleOutline, RemoveCircleOutline, DeleteForever } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';

@@ -9,7 +9,6 @@ import LoginView from '../features/auth/LoginView';
 import ProtectedRoute from './ProtectedRoute'; // 1. Import the component
 import UserManagementView from '../features/users/UserManagementView';
 
-// 2. The old definition of ProtectedRoute is now deleted from this file.
 
 export const router = createHashRouter([
   {

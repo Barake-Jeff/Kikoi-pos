@@ -1,7 +1,7 @@
 // src/features/pos_terminal/components/SaleCompleteDialog.tsx
 
 import React from 'react';
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Typography, Box } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
 import { usePrint } from '../../../hooks/usePrint';
 import type { ReceiptProps } from './Receipt';
 import { Receipt } from './Receipt';
@@ -26,14 +26,14 @@ const SaleCompleteDialog = ({ open, onClose, receiptData }: SaleCompleteDialogPr
       <Dialog open={open} onClose={onClose} aria-labelledby="sale-complete-dialog-title">
         <DialogTitle id="sale-complete-dialog-title">Sale Completed!</DialogTitle>
         <DialogContent>
-          {receiptData.changeDue && receiptData.changeDue > 0 && (
+          {/* {receiptData.changeDue && receiptData.changeDue > 0 && (
             <Box sx={{ textAlign: 'center', mb: 2 }}>
               <Typography variant="subtitle1">Change Due:</Typography>
               <Typography variant="h3" color="success.main" sx={{ fontWeight: 'bold' }}>
                 Ksh {receiptData.changeDue.toFixed(2)}
               </Typography>
             </Box>
-          )}
+          )} */}
           <DialogContentText>
             You can now print a receipt or start a new sale.
           </DialogContentText>

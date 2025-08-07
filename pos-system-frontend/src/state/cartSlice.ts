@@ -1,5 +1,3 @@
-// src/state/cartSlice.ts (The complete, corrected version)
-
 import { create } from 'zustand';
 import type { Product, CartItem } from '../types';
 import { useProductStore } from './productSlice';

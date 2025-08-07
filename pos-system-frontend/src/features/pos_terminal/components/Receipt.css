@@ -1,28 +1,202 @@
 /* src/features/pos_terminal/components/Receipt.css */
 
-/* These styles will ONLY be applied when printing */
+/* --- Base styles for ON-SCREEN display (e.g., inside a modal) --- */
+.receipt-container {
+  font-family: 'Consolas', 'Courier New', 'Lucida Console', monospace;
+  width: 280px;
+  padding: 15px;
+  font-size: 9px; /* This will be the fallback for non-specified text */
+  color: #333;
+  line-height: 1.5;
+  background-color: #fff;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.receipt-store-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.receipt-address,
+.receipt-meta-info {
+  font-size: 8px; /* Specific smaller size for these info lines */
+  margin: 3px 0;
+  color: #555;
+}
+
+.receipt-hr {
+  border: none;
+  border-top: 1px dashed #bbb;
+  margin: 15px 0;
+}
+
+/* Table general styles */
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+
+/* <<< --- MAIN CHANGE HERE: Set font-size explicitly on table headers and data cells */
+.receipt-table thead th,
+.receipt-table tbody td {
+  font-size: 8px; /* Targeted font size for item details */
+  padding: 5px 0;
+  vertical-align: top;
+  color: #333;
+}
+
+.receipt-table thead th {
+  padding: 5px 0;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #000;
+  border-bottom: 1px solid #ccc;
+}
+
+.receipt-th-item { text-align: left; }
+.receipt-th-number { text-align: right; }
+
+.receipt-td-item {
+  text-align: left;
+  word-break: break-word;
+  padding-right: 5px;
+}
+
+.receipt-td-number {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Totals section */
+.receipt-totals-section {
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px dashed #bbb;
+}
+
+.receipt-total-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 5px 0;
+  font-size: 9px; /* Slightly larger than item details */
+}
+
+.receipt-total-row-bold {
+  display: flex;
+  justify-content: space-between;
+  margin: 8px 0;
+  font-weight: bold;
+  font-size: 11px; /* Larger total font size */
+  color: #000;
+}
+
+/* Payment details box */
+.receipt-payment-details {
+  margin-top: 25px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  background-color: #f9f9f9;
+  font-size: 9px; /* Consistent with other non-item body text */
+  border-radius: 4px;
+}
+
+.receipt-payment-details strong {
+  font-size: 10px;
+  margin-bottom: 8px;
+  display: block;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+.receipt-payment-details-text {
+  margin: 4px 0;
+  line-height: 1.3;
+}
+
+/* Footer */
+.receipt-footer {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 9px;
+  color: #555;
+}
+
+/* --- PRINT-SPECIFIC STYLES (override screen styles when printing) --- */
 @media print {
-  /* Hide the main application when printing, only show the receipt */
-  body > #root > *:not(.receipt-print-container) {
+  body > #root > *:not(.receipt-container) {
     display: none !important;
   }
 
-  /* Ensure the receipt takes up the full space */
-  .receipt-print-container,
-  .receipt-print-container * {
-    visibility: visible !important;
-    font-size: 9pt !important; /* Use 'pt' for print, it's more reliable than 'px' */
-    font-family: "Lucida Console", "Courier New", monospace !important;
+  .receipt-container {
+    width: 80mm;
+    max-width: none;
+    padding: 5mm;
+    margin: 0 auto;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    font-size: 8pt !important; /* Base font size for print. */
     line-height: 1.4 !important;
+    color: #000 !important;
   }
 
-  /* Make specific elements even smaller if needed */
-  .receipt-print-container .receipt-secondary-info {
-    font-size: 8pt !important;
+  .receipt-container,
+  .receipt-container * {
+    visibility: visible !important;
+    font-family: 'Consolas', 'Courier New', 'Lucida Console', monospace !important;
+    color: #000 !important;
   }
 
-  /* Make the store name proportionally larger */
-  .receipt-print-container .receipt-store-name {
-    font-size: 12pt !important;
+  /* <<< --- MAIN CHANGE HERE for Print: Specific font-size for table headers and data cells */
+  .receipt-table thead th,
+  .receipt-table tbody td {
+      font-size: 7pt !important; /* Targeted font size for item details in print */
+      padding: 2px 0 !important; /* Reduce padding for print to fit more */
+  }
+
+  /* Adjust other font sizes for print where necessary, relative to 8pt base */
+  .receipt-store-name { font-size: 14pt !important; }
+  .receipt-address,
+  .receipt-meta-info,
+  .receipt-secondary-info,
+  .receipt-footer,
+  .receipt-payment-details-text { font-size: 7pt !important; }
+  .receipt-payment-details strong { font-size: 9pt !important; }
+  .receipt-total-row { font-size: 8pt !important; }
+  .receipt-total-row-bold { font-size: 10pt !important; }
+
+
+  /* Reduce spacing for print to conserve paper */
+  .receipt-header,
+  .receipt-totals-section,
+  .receipt-payment-details,
+  .receipt-footer {
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+    padding: 0 !important;
+  }
+
+  .receipt-hr {
+    margin: 8px 0 !important;
+  }
+
+  body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
   }
 }
