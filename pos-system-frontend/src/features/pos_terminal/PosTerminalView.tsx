@@ -220,7 +220,7 @@ const PosTerminalView = () => {
       <SaleCompleteDialog open={isSaleCompleteDialogOpen} onClose={handleNewSale} receiptData={lastSaleData} />
       <HoldSaleDialog open={isHoldSaleDialogOpen} onClose={() => setHoldSaleDialogOpen(false)} onConfirm={handleConfirmHoldSale} />
 
-      <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
+      <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', lg: 'row' } }}>
         <Box sx={{ flex: '1 1 60%' }}><CartDisplay /></Box>
         <Box sx={{ flex: '1 1 40%' }}>
           <Stack spacing={3}>
