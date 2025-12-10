@@ -1,202 +1,276 @@
 /* src/features/pos_terminal/components/Receipt.css */
 
-/* --- Base styles for ON-SCREEN display (e.g., inside a modal) --- */
+/* --- Base styles for ON-SCREEN and PRINT display --- */
 .receipt-container {
-  font-family: 'Consolas', 'Courier New', 'Lucida Console', monospace;
-  width: 280px;
+  /* This font family is key to the dot-matrix/thermal printer look. */
+  font-family: 'Lucida Console', 'Courier New', monospace;
+  width: 300px; /* Slightly wider to accommodate spacing */
   padding: 15px;
-  font-size: 9px; /* This will be the fallback for non-specified text */
-  color: #333;
-  line-height: 1.5;
+  font-size: 13px; /* A clear base font size */
+  font-weight: 500;
+  color: #000;
+  line-height: 1.6;
   background-color: #fff;
-  border: 1px solid #eee;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  margin: 20px auto;
 }
 
+/* --- Header Section --- */
 .receipt-header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  font-weight: bold;
 }
 
 .receipt-store-name {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: bold;
-  margin: 0;
-  color: #000;
+  margin-bottom: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .receipt-address,
 .receipt-meta-info {
-  font-size: 8px; /* Specific smaller size for these info lines */
-  margin: 3px 0;
-  color: #555;
+  /* font-size: 12px; */
+  margin: 2px 0;
+  /* font-weight: bold; */
 }
 
+/* --- Asterisk Separator (The main design element) --- */
+/* We hide the default HR line and replace it with a pseudo-element containing asterisks. */
 .receipt-hr {
   border: none;
-  border-top: 1px dashed #bbb;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 14px;
   margin: 15px 0;
+  line-height: 1;
 }
 
-/* Table general styles */
+.receipt-hr::before {
+  /* This content creates the line of asterisks. */
+  content: '*********************************';
+  letter-spacing: 2px; /* Spreads the asterisks apart like the image */
+}
+
+
+/* --- Table for Items --- */
+/* We remove borders to make it look less like a formal table. */
 .receipt-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 15px;
 }
 
-/* <<< --- MAIN CHANGE HERE: Set font-size explicitly on table headers and data cells */
-.receipt-table thead th,
-.receipt-table tbody td {
-  font-size: 8px; /* Targeted font size for item details */
-  padding: 5px 0;
-  vertical-align: top;
-  color: #333;
-}
-
+/* Making headers look like the plain text in the image */
 .receipt-table thead th {
-  padding: 5px 0;
   font-weight: bold;
-  text-transform: uppercase;
-  color: #000;
-  border-bottom: 1px solid #ccc;
+  padding-bottom: 8px;
+  text-transform: none; /* No uppercase for headers */
+  border-bottom: none; /* No line under headers */
 }
 
-.receipt-th-item { text-align: left; }
-.receipt-th-number { text-align: right; }
+.receipt-table tbody td {
+  padding: 4px 0;
+}
 
-.receipt-td-item {
+/* Aligning the columns correctly */
+.receipt-th-item, .receipt-td-item {
   text-align: left;
+  padding-right: 10px; /* Space between item name and quantity */
   word-break: break-word;
-  padding-right: 5px;
 }
 
-.receipt-td-number {
+.receipt-th-number, .receipt-td-number {
   text-align: right;
   white-space: nowrap;
 }
 
-/* Totals section */
+
+/* --- Totals Section --- */
 .receipt-totals-section {
-  margin-top: 20px;
-  padding-top: 10px;
-  border-top: 1px dashed #bbb;
+  margin-top: 15px;
+  font-weight: bold;
 }
 
 .receipt-total-row {
   display: flex;
   justify-content: space-between;
-  margin: 5px 0;
-  font-size: 9px; /* Slightly larger than item details */
+  margin: 4px 0;
 }
 
+/* This targets the main "TOTAL" line to make it stand out */
 .receipt-total-row-bold {
   display: flex;
   justify-content: space-between;
   margin: 8px 0;
   font-weight: bold;
-  font-size: 11px; /* Larger total font size */
-  color: #000;
+  font-size: 18px; /* Larger font for the final total line */
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+  padding: 5px 0;
 }
 
-/* Payment details box */
+/* The label "TOTAL" is normal bold */
+.receipt-total-row-bold span:first-child {
+  font-weight: bold;
+}
+
+/* The actual total value is made even larger and bolder */
+.receipt-total-row-bold span:last-child {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+
+/* --- Payment Details Section --- */
+/* Styled to look like the 'Bank card' section without a box */
 .receipt-payment-details {
-  margin-top: 25px;
-  border: 1px solid #ddd;
-  padding: 10px;
-  text-align: center;
-  background-color: #f9f9f9;
-  font-size: 9px; /* Consistent with other non-item body text */
-  border-radius: 4px;
+  margin-top: 10px;
+  padding: 0;
+  text-align: left; /* Aligns the "Payment Options" title */
+  background-color: transparent;
+  border: none;
+  font-size: 12px;
 }
 
 .receipt-payment-details strong {
-  font-size: 10px;
-  margin-bottom: 8px;
-  display: block;
-  color: #000;
-  text-transform: uppercase;
-  letter-spacing: 0.2px;
+  display: none; /* Hide the "Payment Options" title as it's not in the image */
 }
 
 .receipt-payment-details-text {
+  display: flex;
+  justify-content: space-between;
   margin: 4px 0;
-  line-height: 1.3;
 }
 
-/* Footer */
+
+/* --- Footer Section --- */
 .receipt-footer {
-  text-align: center;
-  margin-top: 30px;
-  font-size: 9px;
-  color: #555;
+  text-align: left; /* Aligned left in the image */
+  margin-top: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 12px;
 }
 
-/* --- PRINT-SPECIFIC STYLES (override screen styles when printing) --- */
+.receipt-footer p {
+  margin: 2px 0; /* Tighter line spacing for the footer */
+}
+
+/* Hide the "Thank You" text if you want to add the other footer details */
+.receipt-footer p:first-child {
+  /* display: none; */
+}
+
+/* --- PRINT-SPECIFIC STYLES --- */
 @media print {
+  /* --- This is the key functional rule from your working code. DO NOT CHANGE. --- */
   body > #root > *:not(.receipt-container) {
     display: none !important;
   }
 
+  /* --- General styles for the printed receipt container --- */
   .receipt-container {
-    width: 80mm;
+    width: 100%; /* Use 100% of paper width for better compatibility */
     max-width: none;
-    padding: 5mm;
+    padding: 0;
     margin: 0 auto;
     border: none;
     box-shadow: none;
     background-color: transparent;
-    font-size: 8pt !important; /* Base font size for print. */
-    line-height: 1.4 !important;
+    font-size: 9pt !important; /* Base font size for print */
     color: #000 !important;
   }
 
+  /* Ensure all children use the correct monospace font */
   .receipt-container,
   .receipt-container * {
-    visibility: visible !important;
-    font-family: 'Consolas', 'Courier New', 'Lucida Console', monospace !important;
+    font-family: 'Lucida Console', 'Courier New', monospace !important;
     color: #000 !important;
   }
 
-  /* <<< --- MAIN CHANGE HERE for Print: Specific font-size for table headers and data cells */
-  .receipt-table thead th,
-  .receipt-table tbody td {
-      font-size: 7pt !important; /* Targeted font size for item details in print */
-      padding: 2px 0 !important; /* Reduce padding for print to fit more */
+  /* --- Below are the NEW visual styles, adapted for print --- */
+
+  .receipt-store-name {
+    font-size: 18pt !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
   }
 
-  /* Adjust other font sizes for print where necessary, relative to 8pt base */
-  .receipt-store-name { font-size: 14pt !important; }
   .receipt-address,
-  .receipt-meta-info,
-  .receipt-secondary-info,
-  .receipt-footer,
-  .receipt-payment-details-text { font-size: 7pt !important; }
-  .receipt-payment-details strong { font-size: 9pt !important; }
-  .receipt-total-row { font-size: 8pt !important; }
-  .receipt-total-row-bold { font-size: 10pt !important; }
-
-
-  /* Reduce spacing for print to conserve paper */
-  .receipt-header,
-  .receipt-totals-section,
-  .receipt-payment-details,
-  .receipt-footer {
-    margin-top: 8px !important;
-    margin-bottom: 8px !important;
-    padding: 0 !important;
+  .receipt-meta-info {
+    font-size: 8pt !important;
   }
 
+  /* This is the critical addition for the asterisk separator */
   .receipt-hr {
-    margin: 8px 0 !important;
+    border: none !important;
+    text-align: center !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    font-size: 10pt !important;
+    margin: 10px 0 !important;
+    line-height: 1 !important;
+  }
+
+  .receipt-hr::before {
+    content: '*********************************' !important;
+    letter-spacing: 2px !important;
+  }
+
+  .receipt-table thead th {
+    font-weight: bold !important;
+    text-transform: none !important; /* No uppercase for headers */
+    border-bottom: none !important;
+    padding-bottom: 5px !important;
+  }
+
+  .receipt-table tbody td {
+    padding: 2px 0 !important;
+  }
+  
+  /* Bold "Total" label, but not oversized */
+  .receipt-total-row-bold span:first-child {
+    font-size: 12pt !important;
+    font-weight: bold !important;
+  }
+
+  /* Larger, bolded total value */
+  .receipt-total-row-bold span:last-child {
+    font-size: 16pt !important;
+    font-weight: bold !important;
+  }
+
+  /* Style the payment details like the image (no box) */
+  .receipt-payment-details {
+    border: none !important;
+    background: none !important;
+    padding: 0 !important;
+    margin-top: 10px !important;
+  }
+
+  .receipt-payment-details strong {
+    display: none !important; /* Hide the "Payment Options" title */
+  }
+
+  .receipt-payment-details-text {
+    display: flex !important;
+    justify-content: space-between !important;
+    font-size: 9pt !important;
+  }
+  
+  .receipt-footer {
+    text-align: center !important;
+    margin-top: 15px !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    font-size: 10pt !important;
   }
 
   body, html {
     margin: 0;
     padding: 0;
-    overflow: hidden;
   }
 }
