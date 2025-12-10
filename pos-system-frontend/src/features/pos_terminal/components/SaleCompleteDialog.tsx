@@ -1,8 +1,9 @@
 // src/features/pos_terminal/components/SaleCompleteDialog.tsx
 
 import React from 'react';
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Stack } from '@mui/material';
 import { usePrint } from '../../../hooks/usePrint';
+import { usePrintToPrinter } from '../../../hooks/usePrintToPrinter';
 import type { ReceiptProps } from './Receipt';
 import { Receipt } from './Receipt';
 import { useAuthStore } from '../../../state/authSlice';
@@ -16,6 +17,7 @@ interface SaleCompleteDialogProps {
 const SaleCompleteDialog = ({ open, onClose, receiptData }: SaleCompleteDialogProps) => {
   const componentRef = React.useRef<HTMLDivElement>(null);
   const handlePrint = usePrint();
+  const { printToPrinter } = usePrintToPrinter();
   const { user } = useAuthStore();
 
   return (
@@ -39,8 +41,17 @@ const SaleCompleteDialog = ({ open, onClose, receiptData }: SaleCompleteDialogPr
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => handlePrint(componentRef.current)}>Print Receipt</Button>
-          <Button onClick={onClose} variant="contained" autoFocus>New Sale</Button>
+          <Stack direction="row" spacing={1} sx={{ width: '100%' }}>
+            <Button onClick={() => printToPrinter(receiptData)} variant="outlined" color="primary">
+              Print to Thermal Printer
+            </Button>
+            <Button onClick={() => handlePrint(componentRef.current)} variant="outlined">
+              Print Receipt
+            </Button>
+            <Button onClick={onClose} variant="contained" autoFocus>
+              New Sale
+            </Button>
+          </Stack>
         </DialogActions>
       </Dialog>
     </>

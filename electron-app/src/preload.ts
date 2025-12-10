@@ -4,12 +4,12 @@ import { contextBridge, ipcRenderer } from 'electron';
 // on the `window.electronAPI` object.
 export interface IElectronAPI {
   getAppVersion: () => Promise<string>;
-  // You can add other functions here as you need them
-  // e.g., showSaveDialog: (options) => Promise<string | undefined>
+  printReceipt: (receiptData: any) => Promise<{ success: boolean; message?: string; error?: string }>;
 }
 
 const electronAPI: IElectronAPI = {
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  printReceipt: (receiptData) => ipcRenderer.invoke('print-receipt', receiptData),
 };
 
 // Expose the API to the renderer process

@@ -4,12 +4,13 @@ import { fork, ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 import * as http from 'http';
 import * as fs from 'fs';
+import { PosPrinter, PosPrintData, PosPrintOptions } from 'electron-pos-printer';
 
 // --- Global Variables and Constants ---
 const backendStatus = new EventEmitter();
 let mainWindow: BrowserWindow | null = null;
 let backendProcess: ChildProcess | null = null;
-const BACKEND_PORT = 3100;
+const BACKEND_PORT = 3000;
 let backendStartAttempts = 0;
 const MAX_BACKEND_ATTEMPTS = 3;
 const BACKEND_PING_INTERVAL = 1000; // Check every 1 second
@@ -173,6 +174,135 @@ function createWindow() {
     }
 }
 
+// --- Receipt Printing Handler ---
+function formatReceiptData(receiptData: any): PosPrintData[] {
+    const printData: PosPrintData[] = [
+        {
+            type: 'text',
+            value: 'Celeb Shop',
+            style: { fontWeight: '700', textAlign: 'center', fontSize: '16px' }
+        },
+        {
+            type: 'text',
+            value: 'The Altitude, Taurus',
+            style: { fontSize: '10px', textAlign: 'center' }
+        },
+        {
+            type: 'text',
+            value: `Date: ${new Date().toLocaleString()}`,
+            style: { fontSize: '8px', textAlign: 'center' }
+        }
+    ];
+
+    if (receiptData.transactionId) {
+        printData.push({
+            type: 'text',
+            value: `Receipt No: ${receiptData.transactionId}`,
+            style: { fontSize: '8px', textAlign: 'center' }
+        });
+    }
+
+    if (receiptData.servedBy) {
+        printData.push({
+            type: 'text',
+            value: `Served by: ${receiptData.servedBy.username || 'Staff'}`,
+            style: { fontSize: '8px', textAlign: 'center' }
+        });
+    }
+
+    // Divider
+    printData.push({
+        type: 'text',
+        value: '================================',
+        style: { fontSize: '8px', textAlign: 'center' }
+    });
+
+    // Items table (and plain-text fallback rows)
+    const tableBody = receiptData.items.map((item: any) => [
+        item.name.substring(0, 15),
+        item.quantity.toString(),
+        `Ksh ${item.price.toFixed(2)}`,
+        `Ksh ${(item.quantity * item.price).toFixed(2)}`
+    ]);
+
+    printData.push({
+        type: 'table',
+        style: { fontSize: '8px', border: '1px solid #000' },
+        tableHeader: ['Item', 'Qty', 'Price', 'Total'],
+        tableBody,
+        tableHeaderStyle: { backgroundColor: '#000', color: 'white', fontWeight: 'bold' },
+        tableBodyStyle: { border: '0.5px solid #000' }
+    });
+
+    // Also add plain text lines for each item as a fallback (some preview renderers drop table content)
+    tableBody.forEach((row: string[]) => {
+        const [name, qty, price, total] = row;
+        printData.push({
+            type: 'text',
+            value: `${name}  ${qty} x ${price} = ${total}`,
+            style: { fontSize: '8px' }
+        });
+    });
+
+    // Divider
+    printData.push({
+        type: 'text',
+        value: '================================',
+        style: { fontSize: '8px', textAlign: 'center' }
+    });
+
+    // Totals
+    printData.push({
+        type: 'text',
+        value: `TOTAL: Ksh ${receiptData.total.toFixed(2)}`,
+        style: { fontWeight: 'bold', fontSize: '12px', textAlign: 'right' }
+    });
+
+    // Payments
+    if (receiptData.payments && receiptData.payments.length > 0) {
+        printData.push({
+            type: 'text',
+            value: '',
+            style: {}
+        });
+        receiptData.payments.forEach((payment: any) => {
+            printData.push({
+                type: 'text',
+                value: `Paid via ${payment.method.toUpperCase()}: Ksh ${payment.amount.toFixed(2)}`,
+                style: { fontSize: '8px' }
+            });
+        });
+    }
+
+    // Balance due to customer
+    if (receiptData.balanceDue && receiptData.balanceDue > 0) {
+        printData.push({
+            type: 'text',
+            value: '',
+            style: {}
+        });
+        printData.push({
+            type: 'text',
+            value: `BALANCE DUE: Ksh ${receiptData.balanceDue.toFixed(2)}`,
+            style: { fontWeight: 'bold', fontSize: '10px', textAlign: 'right', color: 'green' }
+        });
+    }
+
+    // Footer
+    printData.push({
+        type: 'text',
+        value: '',
+        style: {}
+    });
+    printData.push({
+        type: 'text',
+        value: 'Thank you for your purchase!',
+        style: { textAlign: 'center', fontSize: '8px', marginTop: '10px' }
+    });
+
+    return printData;
+}
+
 // --- App Lifecycle Events ---
 app.on('ready', () => {
     console.log('[Electron Main] App is ready.');
@@ -186,7 +316,42 @@ app.on('ready', () => {
         }
     ipcMain.handle('get-app-version', () => {
             return app.getVersion();
-    })
+    });
+    
+    // IPC handler for printing receipts to thermal printer
+    ipcMain.handle('print-receipt', async (event, receiptData) => {
+        try {
+            console.log('[Electron Main] Print request received for receipt:', receiptData?.transactionId);
+            console.log('[Electron Main] payload keys:', receiptData ? Object.keys(receiptData) : 'NO_PAYLOAD');
+            console.log('[Electron Main] items length:', receiptData?.items?.length ?? 0);
+
+            if (!receiptData?.items || receiptData.items.length === 0) {
+                console.warn('[Electron Main] No items to print — aborting');
+                return { success: false, error: 'No items in receiptData' };
+            }
+
+            const printData = formatReceiptData(receiptData);
+            console.log('[Electron Main] formatted printData length:', printData.length);
+            console.log('[Electron Main] sample printData entries:', JSON.stringify(printData.slice(0,3)));
+
+            const options = {
+                preview: false, // disable preview for testing
+                margin: '0 0 0 0',
+                copies: 1,
+                name: 'Kikoi POS Receipt',
+                pageSize: '80mm',
+                timeOutPerLine: 400,
+                silent: true,
+            };
+
+            await PosPrinter.print(printData, options as any);
+            console.log('[Electron Main] Receipt printed successfully');
+            return { success: true, message: 'Receipt sent to printer' };
+        } catch (error: any) {
+            console.error('[Electron Main] Print error:', error);
+            return { success: false, error: error.message || 'Unknown error occurred' };
+        }
+    });
     });
 });
 
