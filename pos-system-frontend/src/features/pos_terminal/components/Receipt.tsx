@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Payment, User, CartItem } from '../../../types';
 
-import './Receipt.css'; // <-- UNCOMMENTED THIS LINE!
+import './Receipt.css';
 
 export interface ReceiptProps {
   items: CartItem[];
@@ -13,8 +13,8 @@ export interface ReceiptProps {
   changeDue?: number;
 }
 
-const PAYBILL_NUMBER = '522533';
-const ACCOUNT_NUMBER = '6314306';
+const PAYBILL_NUMBER = '3665378';
+// const ACCOUNT_NUMBER = '6314306';
 
 export const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
   ({ items, total, payments, servedBy, transactionId, cashTendered, changeDue }, ref) => {
@@ -33,7 +33,7 @@ export const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
         <div className="receipt-header">
           <h3 className="receipt-store-name">Celeb Shop</h3>
           {/* Renamed to receipt-address for clearer mapping */}
-          <p className="receipt-address receipt-secondary-info">Apple Tree Apartments, Mombasa Road</p>
+          <p className="receipt-address receipt-secondary-info">The Altitude, Taurus</p>
           <p className="receipt-meta-info receipt-secondary-info">Date: {new Date().toLocaleString()}</p>
           {transactionId && <p className="receipt-meta-info receipt-secondary-info">Receipt No: {transactionId}</p>}
           {servedBy && <p className="receipt-meta-info receipt-secondary-info">Served by: {servedBy.username}</p>}
@@ -94,8 +94,8 @@ export const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
         <div className="receipt-payment-details">
           <strong>Payment Options</strong>
           {/* Specific class for this paragraph */}
-          <p className="receipt-payment-details-text">Lipa na M-Pesa Paybill: <strong>{PAYBILL_NUMBER}</strong></p>
-          <p className="receipt-payment-details-text">Acc. No: <strong>{ACCOUNT_NUMBER}</strong></p>
+          <p className="receipt-payment-details-text">Lipa na M-Pesa Till: <strong>{PAYBILL_NUMBER}</strong></p>
+          {/* <p className="receipt-payment-details-text">Acc. No: <strong>{ACCOUNT_NUMBER}</strong></p> */}
         </div>
 
         <div className="receipt-footer">
