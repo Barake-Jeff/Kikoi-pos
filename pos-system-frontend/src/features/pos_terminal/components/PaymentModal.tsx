@@ -32,50 +32,64 @@ const style = {
 const PaymentModal = ({ open, onClose, onConfirm, totalAmount }: PaymentModalProps) => {
   const { enqueueSnackbar } = useSnackbar();
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [currentAmount, setCurrentAmount] = useState('');
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('cash');
-  const [cashTendered, setCashTendered] = useState('');
+  const [paymentInput, setPaymentInput] = useState('');
+  const [finalCashTendered, setFinalCashTendered] = useState(0);
 
-  const totalPaid = payments.reduce((acc, p) => acc + p.amount, 0);
-  const remainingBalance = totalAmount - totalPaid;
+  // --- START OF LOGIC CHANGES ---
 
-  const changeDue = (selectedMethod === 'cash' && parseFloat(cashTendered) > remainingBalance)
-    ? parseFloat(cashTendered) - remainingBalance
-    : 0;
+  // 1. This calculates the amount APPLIED to the bill. This remains the same.
+  const totalApplied = payments.reduce((acc, p) => acc + p.amount, 0);
+  const remainingBalance = totalAmount - totalApplied;
+
+  // 2. NEW: Calculate the TOTAL money received for DISPLAY purposes.
+  // It's the sum of non-cash payments plus the full cash amount tendered by the customer.
+  const displayTotalPaid = payments
+    .filter(p => p.method !== 'cash')
+    .reduce((acc, p) => acc + p.amount, 0) + finalCashTendered;
+
+  // 3. NEW: Calculate the final CHANGE DUE for DISPLAY purposes.
+  const displayChangeDue = Math.max(0, displayTotalPaid - totalAmount);
+
+  // --- END OF LOGIC CHANGES ---
 
   useEffect(() => {
     if (open) {
       setPayments([]);
-      setCurrentAmount(totalAmount.toFixed(2));
       setSelectedMethod('cash');
-      setCashTendered('');
+      setPaymentInput('');
+      setFinalCashTendered(0);
     }
   }, [open, totalAmount]);
 
   const handleAddPayment = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    let amountToAdd = parseFloat(currentAmount);
-
-    if (isNaN(amountToAdd) || amountToAdd <= 0) {
+    const enteredAmount = parseFloat(paymentInput) || 0;
+    
+    if (isNaN(enteredAmount) || enteredAmount <= 0) {
       enqueueSnackbar('Please enter a valid amount.', { variant: 'warning' });
       return;
     }
     
-    if (amountToAdd > remainingBalance + 0.01) {
-      enqueueSnackbar('Amount cannot be greater than the remaining balance.', { variant: 'warning' });
-      return;
+    if (selectedMethod === 'cash') {
+      const amountToApply = Math.min(enteredAmount, remainingBalance);
+      setPayments(prev => [...prev, { method: 'cash', amount: amountToApply }]);
+      setFinalCashTendered(enteredAmount);
+    } else {
+      if (enteredAmount > remainingBalance + 0.01) {
+        enqueueSnackbar('Amount cannot be greater than the remaining balance for this method.', { variant: 'warning' });
+        return;
+      }
+      setPayments(prev => [...prev, { method: selectedMethod, amount: enteredAmount }]);
     }
 
-    if (selectedMethod === 'cash' && changeDue > 0) {
-      amountToAdd = remainingBalance;
-    }
-
-    setPayments(prev => [...prev, { method: selectedMethod, amount: amountToAdd }]);
-    setCurrentAmount('');
-    setCashTendered('');
+    setPaymentInput('');
   };
 
   const handleRemovePayment = (index: number) => {
+    if (payments[index].method === 'cash') {
+      setFinalCashTendered(0);
+    }
     setPayments(prev => prev.filter((_, i) => i !== index));
   };
   
@@ -86,10 +100,20 @@ const PaymentModal = ({ open, onClose, onConfirm, totalAmount }: PaymentModalPro
     }
     onConfirm({
       payments,
-      cashTendered: parseFloat(cashTendered) || 0,
-      changeDue,
+      cashTendered: finalCashTendered,
+      changeDue: displayChangeDue, // Pass the correct final change
     });
   };
+  
+  const handleMethodSelect = (method: PaymentMethod) => {
+    setSelectedMethod(method);
+    if (method !== 'cash') {
+      setPaymentInput(remainingBalance > 0 ? remainingBalance.toFixed(2) : '');
+    } else {
+      setPaymentInput('');
+    }
+  };
+
 
   return (
     <Modal open={open} onClose={onClose} aria-labelledby="payment-modal-title">
@@ -103,60 +127,47 @@ const PaymentModal = ({ open, onClose, onConfirm, totalAmount }: PaymentModalPro
             <Typography variant="h6">Total Due:</Typography>
             <Typography variant="h6">Ksh {totalAmount.toFixed(2)}</Typography>
           </Box>
+          {/* UPDATED: Use displayTotalPaid here */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', color: 'success.main' }}>
-            <Typography>Total Paid:</Typography>
-            <Typography>Ksh {totalPaid.toFixed(2)}</Typography>
+            <Typography variant="h6">Total Paid:</Typography>
+            <Typography variant="h6">Ksh {displayTotalPaid.toFixed(2)}</Typography>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', color: 'error.main', fontWeight: 'bold' }}>
             <Typography variant="h6">Remaining:</Typography>
             <Typography variant="h6">Ksh {remainingBalance.toFixed(2)}</Typography>
           </Box>
+
+          {/* NEW: Conditionally rendered Change Due section */}
+          {displayChangeDue > 0 && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', color: 'info.main', fontWeight: 'bold' }}>
+              <Typography variant="h6">Change Due:</Typography>
+              <Typography variant="h6">Ksh {displayChangeDue.toFixed(2)}</Typography>
+            </Box>
+          )}
         </Stack>
         <Divider sx={{ my: 2 }} />
 
         {remainingBalance > 0.01 && (
           <>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
-              <TextField
-                label="Amount to Pay"
-                type="number"
-                value={currentAmount}
-                onChange={(e) => setCurrentAmount(e.target.value)}
-                fullWidth
-                autoFocus
-                onClick={() => { if (selectedMethod !== 'cash' && currentAmount === '') { setCurrentAmount(remainingBalance.toFixed(2)); } }}
-                sx={{ flex: 1 }}
-              />
-              {selectedMethod === 'cash' && (
-                <TextField
-                  label="Cash Tendered"
-                  type="number"
-                  value={cashTendered}
-                  onChange={(e) => setCashTendered(e.target.value)}
-                  fullWidth
-                  sx={{ flex: 1 }}
-                />
-              )}
-            </Box>
+            <TextField
+              label={selectedMethod === 'cash' ? 'Cash Tendered' : 'Amount to Pay'}
+              type="number"
+              value={paymentInput}
+              onChange={(e) => setPaymentInput(e.target.value)}
+              fullWidth
+              autoFocus
+            />
             
             <ButtonGroup fullWidth variant="outlined" sx={{ my: 2 }}>
-              <Button onClick={() => { setSelectedMethod('cash'); setCurrentAmount(remainingBalance.toFixed(2)); setCashTendered(''); }} variant={selectedMethod === 'cash' ? 'contained' : 'outlined'}>Cash</Button>
-              <Button onClick={() => setSelectedMethod('mpesa')} variant={selectedMethod === 'mpesa' ? 'contained' : 'outlined'}>M-Pesa</Button>
-              <Button onClick={() => setSelectedMethod('card')} variant={selectedMethod === 'card' ? 'contained' : 'outlined'}>Card</Button>
+              <Button onClick={() => handleMethodSelect('cash')} variant={selectedMethod === 'cash' ? 'contained' : 'outlined'}>Cash</Button>
+              <Button onClick={() => handleMethodSelect('mpesa')} variant={selectedMethod === 'mpesa' ? 'contained' : 'outlined'}>M-Pesa</Button>
+              <Button onClick={() => handleMethodSelect('card')} variant={selectedMethod === 'card' ? 'contained' : 'outlined'}>Card</Button>
             </ButtonGroup>
 
-            <Button fullWidth variant="contained" onClick={handleAddPayment} disabled={!currentAmount} type="button">
+            <Button fullWidth variant="contained" onClick={handleAddPayment} disabled={!paymentInput} type="button">
               Add Payment
             </Button>
           </>
-        )}
-        
-        {changeDue > 0 && (
-          <Box sx={{ mt: 2, p: 2, backgroundColor: 'success.light', borderRadius: 1, textAlign: 'center' }}>
-            <Typography variant="h6" color="success.dark">
-              Change Due: Ksh {changeDue.toFixed(2)}
-            </Typography>
-          </Box>
         )}
         
         {payments.length > 0 && (

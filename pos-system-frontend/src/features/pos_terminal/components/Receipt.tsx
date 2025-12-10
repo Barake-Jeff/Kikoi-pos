@@ -80,7 +80,7 @@ export const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
             <>
               <div className="receipt-hr" />
               <div className="receipt-total-row">
-                <span>TENDERED (CASH)</span>
+                <span>TOTAL PAID</span>
                 <span>Ksh {cashTendered.toFixed(2)}</span>
               </div>
               <div className="receipt-total-row">
