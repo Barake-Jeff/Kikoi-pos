@@ -8,7 +8,7 @@ import type { ReceiptProps } from '../features/pos_terminal/components/Receipt';
 export const usePrintToPrinter = () => {
   const { enqueueSnackbar } = useSnackbar();
 
-  const printToPrinter = async (receiptData: ReceiptProps) => {
+  const printToPrinter = async (receiptData: ReceiptProps, printerName?: string) => {
     try {
       // Check if we're in Electron
       if (typeof window !== 'undefined' && (window as any).electronAPI) {
@@ -18,8 +18,10 @@ export const usePrintToPrinter = () => {
           transactionId: receiptData.transactionId,
           total: receiptData.total,
           itemsCount: receiptData?.items?.length,
+          printerName
         }));
-        const result = await (window as any).electronAPI.printReceipt(receiptData);
+        const payload = printerName ? { ...receiptData, printerName } : receiptData;
+        const result = await (window as any).electronAPI.printReceipt(payload);
 
         if (result.success) {
           enqueueSnackbar(result.message || 'Receipt sent to printer', {

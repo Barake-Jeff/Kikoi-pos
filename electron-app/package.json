@@ -5,7 +5,7 @@
   "main": "dist/main.js",
   "scripts": {
     "start": "concurrently \"npm run start-frontend-dev\" \"wait-on http://localhost:5173 && npm run start-electron-dev\"",
-    "start-electron-dev": "electron .",
+    "start-electron-dev": "tsc && electron .",
     "start-frontend-dev": "cd ../pos-system-frontend && npm run dev",
     "build": "npm run build:frontend && npm run build:backend && npm run build:electron",
     "build:electron": "tsc && electron-builder",
@@ -34,6 +34,9 @@
     "directories": {
       "output": "release"
     },
+    "win": {
+      "target": "nsis"
+    },
     "files": [
       "dist/**",
       {
@@ -54,6 +57,11 @@
           ".env",
           "package.json"
         ]
+      },
+      {
+        "from": "resources/bin",
+        "to": "bin",
+        "filter": ["**/*"]
       }
     ],
     "afterPack": "./afterPack.js",
