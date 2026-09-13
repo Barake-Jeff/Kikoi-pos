@@ -5,7 +5,7 @@ from escpos.printer import Win32Raw
 
 # --- CONFIGURATION ---
 # Exact printer name as shown in Windows "Printers & Scanners"
-PRINTER_NAME = "POS-80C (copy 1)"
+PRINTER_NAME = "POS-80C"
 
 def print_receipt(data):
     try:
@@ -16,7 +16,7 @@ def print_receipt(data):
         p.text("CELEB SHOP\n")
 
         p.set(align='center', bold=False)
-        p.text("APPLE TREE\n")
+        p.text("THE ALTITUDE\n")
         p.text(f"DATE: {data.get('date', 'N/A')}\n")
 
         if data.get('transactionId'):
@@ -49,21 +49,33 @@ def print_receipt(data):
 
         # Total - Bold but not double height to save space and look cleaner
         p.set(align='right', bold=True)
-        p.text(f"TOTAL: Ksh {float(data.get('total', 0)):.2f}\n")
+        total_val = float(data.get('total', 0))
+        p.text(f"TOTAL: Ksh {total_val:.2f}\n")
 
-        # Payments
-        p.set(align='right', bold=False, double_height=False)
+        # Payments & Change
+        p.set(align='right', bold=False)
+        p.text("-" * 21 + "\n") # Divider for totals area
+        
+        # Cash Tendered (The actual bill given by user)
+        cash_tendered = data.get('cashTendered')
+        if cash_tendered and float(cash_tendered) > 0:
+            p.text(f"CASH TENDERED: Ksh {float(cash_tendered):.2f}\n")
+
+        # Change Due (Calculated change)
+        change_due = data.get('changeDue', 0)
+        if change_due and float(change_due) > 0:
+            p.set(align='right', bold=True)
+            p.text(f"CHANGE DUE: Ksh {float(change_due):.2f}\n")
+            p.set(align='right', bold=False)
+
+        p.text("-" * LINE_WIDTH + "\n")
+
+        # Payment Methods breakdown
         for payment in data.get('payments', []):
             method = payment.get('method', 'Paid').upper()
             amount = float(payment.get('amount', 0))
             p.text(f"{method}: Ksh {amount:.2f}\n")
-
-        # Change
-        balance = data.get('balanceDue', 0)
-        if balance and float(balance) > 0:
-            p.set(align='right', bold=True)
-            p.text(f"CHANGE: Ksh {float(balance):.2f}\n")
-
+        
         # Footer
         p.set(align='center', bold=False)
         p.text("\nTHANK YOU FOR YOUR PURCHASE!\n")
